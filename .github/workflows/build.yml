@@ -23,7 +23,7 @@ jobs:
 
       - name: Install Build Utilities
         run: |
-          brew install cmake ninja
+          brew install cmake ninja bartycrouch
 
       - name: Set Schema
         run: |
