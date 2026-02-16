@@ -460,14 +460,26 @@ typedef NS_ENUM(NSInteger, DOLEmulationVisibleTouchPad) {
 }
 
 - (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls {
-    NSString* sourcePath = [urls[0] path];
+    NSURL* url = urls[0];
+
+    // iOS requires activating security-scoped access for files picked from outside the sandbox
+    BOOL securityScoped = [url startAccessingSecurityScopedResource];
+
+    NSString* sourcePath = [url path];
     std::string path = std::string([sourcePath UTF8String]);
     File::IOFile sky_file(path, "r+b");
+
+    // Release security scope after opening - the file descriptor remains valid
+    if (securityScoped) {
+        [url stopAccessingSecurityScopedResource];
+    }
+
     if (!sky_file)
     {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Failed to Open Skylander File!"
                                        message:nil
                                        preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
@@ -477,6 +489,7 @@ typedef NS_ENUM(NSInteger, DOLEmulationVisibleTouchPad) {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Failed to Read Skylander File!"
                                        message:nil
                                        preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
@@ -488,6 +501,7 @@ typedef NS_ENUM(NSInteger, DOLEmulationVisibleTouchPad) {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Failed to Load Skylander File!"
                                        message:nil
                                        preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
         return;
     }
